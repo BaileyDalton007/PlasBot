@@ -1,6 +1,9 @@
 import discord
 import discord.utils
 from discord.ext import commands
+import os
+import subprocess
+import shlex
 
 commands = discord.ext.commands
 f = open("botkey.txt", "r")
@@ -23,5 +26,15 @@ async def on_command_error(ctx, error):
 @client.command()
 async def ping(ctx):
     await ctx.send(f'Bot latency is {round(client.latency * 1000)}ms')
+
+@client.command()
+async def whitelist(ctx, name):
+    try:
+        subprocess.call(shlex.split(f'./whitelist.sh {name}'))
+        await ctx.send(f'{name} has been whitelisted')
+    except:
+        print()
+        await ctx.send('Whitelist failed')
+
 
 client.run(botKey)
