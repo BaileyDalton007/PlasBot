@@ -33,8 +33,14 @@ async def whitelist(ctx, name):
         subprocess.call(shlex.split(f'./whitelist.sh {name}'))
         await ctx.send(f'{name} has been whitelisted')
     except:
-        print()
         await ctx.send('Whitelist failed')
 
+@client.command()
+async def unwhitelist(ctx, name):
+    try:
+        subprocess.call(shlex.split(f'./unwhitelist.sh {name}'))
+        await ctx.send(f'{name} has been unwhitelisted')
+    except:
+        await ctx.send('Whitelist failed')
 
 client.run(botKey)
