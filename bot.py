@@ -37,10 +37,14 @@ async def whitelist(ctx, name):
 
 @client.command()
 async def unwhitelist(ctx, name):
-    try:
-        subprocess.call(shlex.split(f'./unwhitelist.sh {name}'))
-        await ctx.send(f'{name} has been unwhitelisted')
-    except:
-        await ctx.send('Whitelist failed')
+    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+    if staff in ctx.author.roles:
+        try:
+            subprocess.call(shlex.split(f'./unwhitelist.sh {name}'))
+            await ctx.send(f'{name} has been unwhitelisted')
+        except:
+            await ctx.send('Whitelist failed')
+    else:
+        await ctx.send('You do not have permission to use that command')
 
 client.run(botKey)
