@@ -27,24 +27,54 @@ async def on_command_error(ctx, error):
 async def ping(ctx):
     await ctx.send(f'Bot latency is {round(client.latency * 1000)}ms')
 
-@client.command()
-async def whitelist(ctx, name):
-    try:
-        subprocess.call(shlex.split(f'./whitelist.sh {name}'))
-        await ctx.send(f'{name} has been whitelisted')
-    except:
-        await ctx.send('Whitelist failed')
 
 @client.command()
-async def unwhitelist(ctx, name):
-    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
-    if staff in ctx.author.roles:
+async def whitelist(ctx, name):
+    b = open("blacklist.txt", "r")
+    bMembers = b.read().splitlines()
+    print(bMembers)
+    if name in bMembers:
+        await ctx.send(f'{name} is currently banned')
+    else:    
         try:
-            subprocess.call(shlex.split(f'./unwhitelist.sh {name}'))
-            await ctx.send(f'{name} has been unwhitelisted')
+            subprocess.call(shlex.split(f'./whitelist.sh {name}'))
+            await ctx.send(f'{name} has been whitelisted')
         except:
             await ctx.send('Whitelist failed')
+
+@client.command()
+async def ban(ctx, name):
+    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+    if staff in ctx.author.roles:
+        b = open("blacklist.txt", "a")
+        b.write('\n')
+        b.write(f'{name}')
+        subprocess.call(shlex.split(f'./unwhitelist.sh {name}'))
+        await ctx.send(f'{name} has been banned')
     else:
         await ctx.send('You do not have permission to use that command')
+
+@client.command()
+async def unban(ctx, name):
+    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+    if staff in ctx.author.roles:
+        b = open("blacklist.txt")
+        output = []
+        str=f'{name}'
+        for line in b:
+            if not line.startswith(str):
+                output.append(line)
+        b.close()
+        b = open("blacklist.txt", 'w')
+        b.writelines(output)
+        b.close()
+        await ctx.send(f"{name} has been unbanned")
+    else:
+        await ctx.send('You do not have permission to use that command')
+
+@client.command()
+async def banlist(ctx):
+    b = open("blacklist.txt")
+    await ctx.send(b.readlines())
 
 client.run(botKey)
