@@ -4,6 +4,7 @@ from discord.ext import commands
 import os
 import subprocess
 import shlex
+import random
 
 commands = discord.ext.commands
 f = open("botkey.txt", "r")
@@ -73,6 +74,51 @@ async def unban(ctx, name):
         await ctx.send(f"{name} has been unbanned")
     else:
         await ctx.send('You do not have permission to use that command')
+
+def check(author):
+    def inner_check(message):
+        if message.author != author:
+            return False
+        else:
+            try: 
+                int(message.content) 
+                return True 
+            except ValueError: 
+                return False
+        return inner_check
+
+def check2(author):
+    def inner_check(message):
+        try: 
+            int(message.content) 
+            return True 
+        except ValueError: 
+            return False
+    return inner_check
+
+@client.command()
+async def tp(ctx, name1, name2):
+    v1 = random.randint(1111,9999)
+    subprocess.call(shlex.split(f'./verify.sh {name1} {v1}'))
+    await ctx.send(f'{name1} A 4-digit code has been sent to you in game, copy it here to continue')
+    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+    attempt1 = msg.content
+    if int(attempt1) == v1:
+        await ctx.send(f'Code Accepted for {name1}')
+        v2 = random.randint(1111,9999)
+        subprocess.call(shlex.split(f'./verify.sh {name2} {v2}'))
+        await ctx.send(f'{name2}, a 4-digit code has been sent to you in game, copy it here to continue')
+        msg2 = await client.wait_for('message',check = check2(ctx.author), timeout=60)
+        attempt2 = msg2.content
+        if int(attempt2) == v2:
+            await ctx.send(f'Code Accepted for {name2}, Teleporting {name1} to {name2}')
+            subprocess.call(shlex.split(f'./teleport.sh {name1} {name2}'))
+        else:
+            await  ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+    else:
+        await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+
+
 
 @client.command()
 async def banlist(ctx):
