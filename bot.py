@@ -68,6 +68,8 @@ async def unban(ctx, name):
         b = open("blacklist.txt", 'w')
         b.writelines(output)
         b.close()
+        subprocess.call(shlex.split(f'./whitelist.sh {name}'))
+
         await ctx.send(f"{name} has been unbanned")
     else:
         await ctx.send('You do not have permission to use that command')
