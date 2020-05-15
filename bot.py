@@ -118,6 +118,16 @@ async def tp(ctx, name1, name2):
     else:
         await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
 
+@client.command()
+async def spawn(ctx, name):
+    v1 = random.randint(1111,9999)
+    subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
+    await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
+    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+    attempt1 = msg.content
+    if int(attempt1) == v1:
+        await ctx.send(f'Teleporting {name} to spawn now')
+        subprocess.call(shlex.split(f'./tspawn.sh "{name}"'))
 
 
 @client.command()
