@@ -5,12 +5,21 @@ import os
 import subprocess
 import shlex
 import random
+import asyncpg
 
 commands = discord.ext.commands
 f = open("botkey.txt", "r")
 botKey = f.read()
+p = open("password.txt", "r")
+password = p.read()
+d = open("ip.txt", "r")
+address = d.read()
 
 client = commands.Bot(command_prefix = ("!p ", "!p", "!"), case_insensitive = True, help_command=None)
+
+async def create_db_pool():
+    client.pg_con = await asyncpg.create_pool(host=address, database='bedrockdb', user='postgres', password=password)
+
 
 @client.event
 async def on_ready():
@@ -33,7 +42,6 @@ async def ping(ctx):
 async def whitelist(ctx, name):
     b = open("blacklist.txt", "r")
     bMembers = b.read().splitlines()
-    print(bMembers)
     if name in bMembers:
         await ctx.send(f'{name} is currently banned')
     else:    
@@ -129,10 +137,28 @@ async def spawn(ctx, name):
         await ctx.send(f'Teleporting {name} to spawn now')
         subprocess.call(shlex.split(f'./tspawn.sh "{name}"'))
 
+@client.command()
+async def rtp(ctx, name):
+    v1 = random.randint(1111,9999)
+    x = random.randrange(100000) - 50000
+    y = random.randrange(100000) - 50000
+    subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
+    await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
+    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+    attempt1 = msg.content
+    if int(attempt1) == v1:
+        await ctx.send(f'Randomly Teleporting {name} now')
+        subprocess.call(shlex.split(f'./rtp.sh "{name}" {x} {y}'))
+
 
 @client.command()
 async def banlist(ctx):
-    b = open("blacklist.txt")
-    await ctx.send(b.readlines())
+    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+    if staff in ctx.author.roles:
+        b = open("blacklist.txt")
+        await ctx.send(b.readlines())
+    else:
+        await ctx.send('You do not have permission to use that command')
 
+client.loop.run_until_complete(create_db_pool())
 client.run(botKey)
