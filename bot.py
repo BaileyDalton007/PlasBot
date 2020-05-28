@@ -84,16 +84,15 @@ async def unban(ctx, name):
         await ctx.send('You do not have permission to use that command')
 
 def check(author):
-    def inner_check(message):
+    def inner_check(message): 
         if message.author != author:
             return False
-        else:
-            try: 
-                int(message.content) 
-                return True 
-            except ValueError: 
-                return False
-        return inner_check
+        try: 
+            int(message.content) 
+            return True 
+        except ValueError: 
+            return False
+    return inner_check
 
 def check2(author):
     def inner_check(message):
@@ -178,8 +177,10 @@ async def verify(ctx, ign):
             attempt1 = msg.content
             if int(attempt1) == v1:
                 await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment) VALUES ($1, $2, 0, 'none')", str(author.id), str(ign))
+                await author.edit (nick = ign)
                 await author.add_roles(role)
                 await ctx.send("You are now verified!")
+                await author.edit (nick = ign)
 
 
 client.loop.run_until_complete(create_db_pool())
