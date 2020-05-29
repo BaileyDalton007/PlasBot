@@ -37,6 +37,9 @@ async def on_command_error(ctx, error):
 async def ping(ctx):
     await ctx.send(f'Bot latency is {round(client.latency * 1000)}ms')
 
+@client.command()
+async def pong(ctx):
+    await ctx.send('<https://www.youtube.com/watch?v=dQw4w9WgXcQ>')
 
 @client.command()
 async def whitelist(ctx, name):
@@ -104,50 +107,99 @@ def check2(author):
     return inner_check
 
 @client.command()
-async def tp(ctx, name1, name2):
-    v1 = random.randint(1111,9999)
-    subprocess.call(shlex.split(f'./verify.sh "{name1}" {v1}'))
-    await ctx.send(f'{name1} A 4-digit code has been sent to you in game, copy it here to continue')
-    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
-    attempt1 = msg.content
-    if int(attempt1) == v1:
-        await ctx.send(f'Code Accepted for {name1}')
-        v2 = random.randint(1111,9999)
-        subprocess.call(shlex.split(f'./verify.sh "{name2}" {v2}'))
-        await ctx.send(f'{name2}, a 4-digit code has been sent to you in game, copy it here to continue')
-        msg2 = await client.wait_for('message',check = check2(ctx.author), timeout=60)
-        attempt2 = msg2.content
-        if int(attempt2) == v2:
-            await ctx.send(f'Code Accepted for {name2}, Teleporting {name1} to {name2}')
-            subprocess.call(shlex.split(f'./teleport.sh "{name1}" "{name2}"'))
+async def tp(ctx, name1, name2:str=''):
+    if name2 == '':
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        if user:
+            ign = user.get("ign")
+            v2 = random.randint(1111,9999)
+            subprocess.call(shlex.split(f'./verify.sh "{name1}" {v2}'))
+            await ctx.send(f'{name1}, a 4-digit code has been sent to you in game, copy it here to continue')
+            msg2 = await client.wait_for('message',check = check2(ctx.author), timeout=60)
+            attempt2 = msg2.content
+            if int(attempt2) == v2:
+                await ctx.send(f'Code Accepted for {name1}, Teleporting {ign} to {name1}')
+                subprocess.call(shlex.split(f'./teleport.sh "{ign}" "{name1}"'))
+            else:
+                await  ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
         else:
-            await  ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+            await ctx.send("You are not verified!, make sure you specify bot people who are teleporting")
     else:
-        await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+        v1 = random.randint(1111,9999)
+        subprocess.call(shlex.split(f'./verify.sh "{name1}" {v1}'))
+        await ctx.send(f'{name1} A 4-digit code has been sent to you in game, copy it here to continue')
+        msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+        attempt1 = msg.content
+        if int(attempt1) == v1:
+            await ctx.send(f'Code Accepted for {name1}')
+            v2 = random.randint(1111,9999)
+            subprocess.call(shlex.split(f'./verify.sh "{name2}" {v2}'))
+            await ctx.send(f'{name2}, a 4-digit code has been sent to you in game, copy it here to continue')
+            msg2 = await client.wait_for('message',check = check2(ctx.author), timeout=60)
+            attempt2 = msg2.content
+            if int(attempt2) == v2:
+                await ctx.send(f'Code Accepted for {name2}, Teleporting {name1} to {name2}')
+                subprocess.call(shlex.split(f'./teleport.sh "{name1}" "{name2}"'))
+            else:
+                await  ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+        else:
+            await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
 
 @client.command()
-async def spawn(ctx, name):
-    v1 = random.randint(1111,9999)
-    subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
-    await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
-    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
-    attempt1 = msg.content
-    if int(attempt1) == v1:
-        await ctx.send(f'Teleporting {name} to spawn now')
-        subprocess.call(shlex.split(f'./tspawn.sh "{name}"'))
+async def spawn(ctx, name:str = ''):
+    if name == '':
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        if user:
+            ign = user.get("ign")
+            await ctx.send(f'Teleporting {ign} to spawn now')
+            subprocess.call(shlex.split(f'./tspawn.sh "{ign}"'))
+        else:
+            await ctx.send('You are not a verified user! try `!p verify [your ign]`')
+    else:
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        ign = user.get("ign")
+        if user:
+            await ctx.send(f'{ign} is already a verified account!, next time try just doing `!p spawn`')
+        v1 = random.randint(1111,9999)
+        subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
+        await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
+        msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+        attempt1 = msg.content
+        if int(attempt1) == v1:
+            await ctx.send(f'Teleporting {name} to spawn now')
+            subprocess.call(shlex.split(f'./tspawn.sh "{name}"'))
+        else:
+            await ctx.send("That code is incorrect!, try the command again")
 
 @client.command()
 async def rtp(ctx, name):
-    v1 = random.randint(1111,9999)
-    x = random.randrange(100000) - 50000
-    y = random.randrange(100000) - 50000
-    subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
-    await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
-    msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
-    attempt1 = msg.content
-    if int(attempt1) == v1:
-        await ctx.send(f'Randomly Teleporting {name} now')
-        subprocess.call(shlex.split(f'./rtp.sh "{name}" {x} {y}'))
+    if name == '':
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        if user:
+            ign = user.get("ign")
+            x = random.randrange(100000) - 50000
+            y = random.randrange(100000) - 50000
+            await ctx.send(f'Randomly Teleporting {ign} now')
+            subprocess.call(shlex.split(f'./rtp.sh "{ign}" {x} {y}'))
+        else:
+            await ctx.send('You are not a verified user! try `!p verify [your ign]`')
+    else:
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        ign = user.get("ign")
+        if user:
+            await ctx.send(f'{ign} is already a verified account!, next time try just doing `!p spawn`')
+        v1 = random.randint(1111,9999)
+        x = random.randrange(100000) - 50000
+        y = random.randrange(100000) - 50000
+        subprocess.call(shlex.split(f'./verify.sh "{name}" {v1}'))
+        await ctx.send(f'{name} A 4-digit code has been sent to you in game, copy it here to continue')
+        msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
+        attempt1 = msg.content
+        if int(attempt1) == v1:
+            await ctx.send(f'Randomly Teleporting {name} now')
+            subprocess.call(shlex.split(f'./rtp.sh "{name}" {x} {y}'))
+        else:
+            await ctx.send("That code is incorrect!, try the command again")
 
 
 @client.command()
@@ -177,10 +229,11 @@ async def verify(ctx, ign):
             attempt1 = msg.content
             if int(attempt1) == v1:
                 await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment) VALUES ($1, $2, 0, 'none')", str(author.id), str(ign))
-                await author.edit (nick = ign)
-                await author.add_roles(role)
                 await ctx.send("You are now verified!")
-                await author.edit (nick = ign)
+                await author.add_roles(role)
+                await author.edit(nick = ign)
+            else:
+                await ctx.send("That code is incorrect!, try the command again")
 
 
 client.loop.run_until_complete(create_db_pool())
