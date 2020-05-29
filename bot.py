@@ -75,9 +75,9 @@ async def unban(ctx, name):
     if staff in ctx.author.roles:
         b = open("blacklist.txt")
         output = []
-        str=f'{name}'
+        string=f'{name}'
         for line in b:
-            if not line.startswith(str):
+            if not line.startswith(string):
                 output.append(line)
         b.close()
         b = open("blacklist.txt", 'w')
@@ -86,7 +86,7 @@ async def unban(ctx, name):
         subprocess.call(shlex.split(f'./whitelist.sh "{name}"'))
         user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
         if user:
-            await client.pg_con.execute("UPDATE ONLY playerdata SET currpunishment = 'none' WHERE $1 = ign", name)
+           await client.pg_con.execute("UPDATE ONLY playerdata SET currpunishment = 'none' WHERE $1 = ign", name)
         await ctx.send(f"{name} has been unbanned")
     else:
         await ctx.send('You do not have permission to use that command')
@@ -220,6 +220,8 @@ async def banlist(ctx):
 async def verify(ctx, ign):
     author = ctx.message.author
     role = discord.utils.get(author.guild.roles, id=715668348217851964)
+    staff = discord.utils.get(author.guild.roles, id=662708083264585733)
+    donator = discord.utils.get(author.guild.roles, id=715971753607823360)
     if role in author.roles:
         await ctx.send('You are already verified!, if you need to switch accounts contact a staff member')
     else:
@@ -233,7 +235,14 @@ async def verify(ctx, ign):
             msg = await client.wait_for('message', check=check(ctx.author), timeout=60)
             attempt1 = msg.content
             if int(attempt1) == v1:
-                await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment) VALUES ($1, $2, 0, 'none')", str(author.id), str(ign))
+                if staff in author.roles:
+                    rank = 'Staff'
+                else:
+                    if donator in author.roles:
+                        rank = 'Donator'
+                    else:
+                        rank = 'Player'
+                await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment, rank) VALUES ($1, $2, 0, 'none', $3)", str(author.id), str(ign), rank)
                 await ctx.send("You are now verified!")
                 await author.add_roles(role)
                 await author.edit(nick = ign)
