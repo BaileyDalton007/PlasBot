@@ -62,6 +62,9 @@ async def ban(ctx, name):
         b.write('\n')
         b.write(f'{name}')
         subprocess.call(shlex.split(f'./unwhitelist.sh "{name}"'))
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        if user:
+            await client.pg_con.execute("UPDATE ONLY playerdata SET currpunishment = 'banned' WHERE $1 = ign", name)
         await ctx.send(f'{name} has been banned')
     else:
         await ctx.send('You do not have permission to use that command')
@@ -81,7 +84,9 @@ async def unban(ctx, name):
         b.writelines(output)
         b.close()
         subprocess.call(shlex.split(f'./whitelist.sh "{name}"'))
-
+        user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
+        if user:
+            await client.pg_con.execute("UPDATE ONLY playerdata SET currpunishment = 'none' WHERE $1 = ign", name)
         await ctx.send(f"{name} has been unbanned")
     else:
         await ctx.send('You do not have permission to use that command')
@@ -235,6 +240,25 @@ async def verify(ctx, ign):
             else:
                 await ctx.send("That code is incorrect!, try the command again")
 
+@client.command()
+async def info(ctx, name):
+    staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+    if staff in ctx.author.roles:
+        if name[0] == '<':
+            d_id = name[3:21]
+            user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(d_id)))
+        else:
+            user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE ign = $1", str(name)))
+        if user:
+            embed = discord.Embed(title="Playerinfo", description="player information for verified users", color=0x00ff00)
+            for key in user:
+                embed.add_field(name=f"{key}", value=f'{user.get(key)}', inline=False)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send('That is not a verified user')
+    else:
+        await ctx.send('You do not have permission to use that command')
+    
 
 client.loop.run_until_complete(create_db_pool())
 client.run(botKey)
