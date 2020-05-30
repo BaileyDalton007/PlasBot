@@ -178,7 +178,7 @@ async def spawn(ctx, name:str = ''):
             await ctx.send("That code is incorrect!, try the command again")
 
 @client.command()
-async def rtp(ctx, name):
+async def rtp(ctx, name:str=''):
     if name == '':
         user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(ctx.author.id)))
         if user:
@@ -270,7 +270,7 @@ async def info(ctx, name):
         await ctx.send('You do not have permission to use that command')
 
 @client.command()
-async def sethome(ctx, name:str='home'):
+async def sethome(ctx, name:str='home1'):
     author = ctx.message.author
     user = dict(await client.pg_con.fetchrow("SELECT ign FROM playerdata WHERE id = $1", str(author.id)))
     if user:
@@ -282,11 +282,37 @@ async def sethome(ctx, name:str='home'):
         logLen = len(lineList)
         log = str(lineList[logLen-1])
         if str(ign) in log:
-            await ctx.send(log)
+            nameLen = len(ign)
+            coords = log[nameLen + 15:]
+            if name == 'home1':
+                await client.pg_con.execute("UPDATE ONLY playerdata SET home1 = $1 WHERE ign = $2", str(coords), ign)
+                await ctx.send('Your home has been set')
+            else:
+                sponsor = discord.utils.get(ctx.author.guild.roles, id=716155240319287316)
+                donator = discord.utils.get(ctx.author.guild.roles, id=715971753607823360)
+                staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
+                if name == 'home2':
+                    if sponsor in author.roles or donator in author.roles or staff in author.roles:
+                        await client.pg_con.execute("UPDATE ONLY playerdata SET home2 = $1 WHERE ign = $2", str(coords), ign)
+                        await ctx.send('Your home has been set')
+                    else:
+                        await ctx.send("You must be a Donator, Sponsor, or a Staff member to set a second home!")
+                else:
+                    if name == 'home3':
+                        if sponsor in author.roles or staff in author.roles:
+                            await client.pg_con.execute("UPDATE ONLY playerdata SET home3 = $1 WHERE ign = $2", str(coords), ign)
+                            await ctx.send('Your home has been set')
+                        else:
+                            await ctx.send('You must be a Sponsor or a Staff member to set a third home!')
+                    else:
+                        await ctx.send(f'{name} is not a vaild home name, must be "home1", "home2", or "home3"')
+
         else:
-            await ctx.send('Home set failed, please try again')
+            await ctx.send('Home set failed, make sure you are on the server and please try again')
     else:
         await ctx.send("You are not verified, try using `!p verify [your name]` to use this command")
+
+
     
 
 client.loop.run_until_complete(create_db_pool())
