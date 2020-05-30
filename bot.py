@@ -243,7 +243,7 @@ async def verify(ctx, ign):
                         rank = 'Donator'
                     else:
                         rank = 'Player'
-                await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment, rank) VALUES ($1, $2, 0, 'none', $3)", str(author.id), str(ign), rank)
+                await client.pg_con.execute("INSERT INTO playerdata (id, ign, homenum, currpunishment, rank, home1, home2, home3) VALUES ($1, $2, 0, 'none', $3, 'none', 'none', 'none')", str(author.id), str(ign), rank)
                 await ctx.send("You are now verified!")
                 await author.add_roles(role)
                 await author.edit(nick = ign)
@@ -312,7 +312,21 @@ async def sethome(ctx, name:str='home1'):
     else:
         await ctx.send("You are not verified, try using `!p verify [your name]` to use this command")
 
-
+@client.command()
+async def home(ctx, name:str='home1'):
+    author = ctx.message.author
+    user = dict(await client.pg_con.fetchrow("SELECT * FROM playerdata WHERE id = $1", str(author.id)))
+    if user:
+        ign = user.get('ign')
+        home = user.get(name)
+        if home != 'none':
+            homeArr = home.split(', ')
+            subprocess.call(shlex.split(f'./thome.sh "{ign}" {homeArr[0]} {homeArr[1]} {homeArr[2]}'))
+            await ctx.send(f'Sent {ign} to {name}!')
+        else:
+            await ctx.send(f'{name} is not set!, try using `!p sethome [home]`')
+    else:
+        await ctx.send("You are not verified!, do `!p verify [your name]`")
     
 
 client.loop.run_until_complete(create_db_pool())
