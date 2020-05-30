@@ -6,6 +6,7 @@ import subprocess
 import shlex
 import random
 import asyncpg
+import asyncio
 
 commands = discord.ext.commands
 f = open("botkey.txt", "r")
@@ -267,6 +268,25 @@ async def info(ctx, name):
             await ctx.send('That is not a verified user')
     else:
         await ctx.send('You do not have permission to use that command')
+
+@client.command()
+async def sethome(ctx, name:str='home'):
+    author = ctx.message.author
+    user = dict(await client.pg_con.fetchrow("SELECT ign FROM playerdata WHERE id = $1", str(author.id)))
+    if user:
+        ign = user.get('ign')
+        subprocess.call(shlex.split(f'./sethome.sh "{ign}"'))
+        await ctx.send('Please wait ~10 seconds while your home is set!')
+        await asyncio.sleep(10)
+        lineList = [line.rstrip('\n') for line in open('../1.14.60.5/log.txt')]
+        logLen = len(lineList)
+        log = str(lineList[logLen-1])
+        if str(ign) in log:
+            await ctx.send(log)
+        else:
+            await ctx.send('Home set failed, please try again')
+    else:
+        await ctx.send("You are not verified, try using `!p verify [your name]` to use this command")
     
 
 client.loop.run_until_complete(create_db_pool())
