@@ -55,6 +55,12 @@ async def whitelist(ctx, name):
         except:
             await ctx.send('Whitelist failed')
 
+@whitelist.error()
+async def whitelist_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
+
+
 @client.command()
 async def ban(ctx, name):
     staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
@@ -69,6 +75,11 @@ async def ban(ctx, name):
         await ctx.send(f'{name} has been banned')
     else:
         await ctx.send('You do not have permission to use that command')
+
+@ban.error()
+async def ban_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
 
 @client.command()
 async def unban(ctx, name):
@@ -91,6 +102,11 @@ async def unban(ctx, name):
         await ctx.send(f"{name} has been unbanned")
     else:
         await ctx.send('You do not have permission to use that command')
+
+@unban.error()
+async def unban_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
 
 def check(author):
     def inner_check(message): 
@@ -150,6 +166,11 @@ async def tp(ctx, name1, name2:str=''):
                 await  ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
         else:
             await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
+
+@tp.error()
+async def tp_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
 
 @client.command()
 async def spawn(ctx, name:str = ''):
@@ -250,6 +271,11 @@ async def verify(ctx, ign):
             else:
                 await ctx.send("That code is incorrect!, try the command again")
 
+@verify.error()
+async def verify_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
+
 @client.command()
 async def info(ctx, name):
     staff = discord.utils.get(ctx.author.guild.roles, id=662708083264585733)
@@ -268,6 +294,11 @@ async def info(ctx, name):
             await ctx.send('That is not a verified user')
     else:
         await ctx.send('You do not have permission to use that command')
+
+@whitelist.error()
+async def whitelist_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Missing a required parameter, check commands channel')
 
 @client.command()
 async def sethome(ctx, name:str='home1'):
