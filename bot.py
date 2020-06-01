@@ -55,7 +55,7 @@ async def whitelist(ctx, name):
         except:
             await ctx.send('Whitelist failed')
 
-@whitelist.error()
+@whitelist.error
 async def whitelist_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
@@ -76,7 +76,7 @@ async def ban(ctx, name):
     else:
         await ctx.send('You do not have permission to use that command')
 
-@ban.error()
+@ban.error
 async def ban_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
@@ -103,7 +103,7 @@ async def unban(ctx, name):
     else:
         await ctx.send('You do not have permission to use that command')
 
-@unban.error()
+@unban.error
 async def unban_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
@@ -167,7 +167,7 @@ async def tp(ctx, name1, name2:str=''):
         else:
             await ctx.send('That is the incorrect code, check your minecraft chat for a 4 digit number sent to you, if not and you think this is a bug please message a staff member')
 
-@tp.error()
+@tp.error
 async def tp_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
@@ -271,7 +271,7 @@ async def verify(ctx, ign):
             else:
                 await ctx.send("That code is incorrect!, try the command again")
 
-@verify.error()
+@verify.error
 async def verify_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
@@ -295,8 +295,8 @@ async def info(ctx, name):
     else:
         await ctx.send('You do not have permission to use that command')
 
-@whitelist.error()
-async def whitelist_error(ctx, error):
+@info.error
+async def info_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Missing a required parameter, check commands channel')
 
@@ -312,7 +312,7 @@ async def sethome(ctx, name:str='home1'):
         lineList = [line.rstrip('\n') for line in open('../1.14.60.5/log.txt')]
         logLen = len(lineList)
         log = str(lineList[logLen-1])
-        if str(ign) in log:
+        if str(f'Teleported {ign} to') in log:
             nameLen = len(ign)
             coords = log[nameLen + 15:]
             if name == 'home1':
